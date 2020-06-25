@@ -1,4 +1,6 @@
 import os
+import time
+import threading
 from pygame import mixer
 from tkinter import messagebox
 from tkinter import filedialog
@@ -28,8 +30,6 @@ def browse_file(filename):
     filesong = filedialog.askopenfile()
 
 
-# selected song
-# fileplay = browse_file
 # play song
 filename = r"icons/137.FRANCO - Namiswi Misapi.mp3"
 
@@ -45,12 +45,16 @@ def play_song():
         mixer.music.play()
         statusbar["text"] = f"playing {os.path.basename(filename)}"
         paused = False
-    if not paused:
+    else:
         mixer.music.unpause()
         statusbar["text"] = f"playing {os.path.basename(filename)}"
         paused = True
-    # show_song_status()
-    get_post()
+    show_song_status()
+
+
+# stop song
+def stop_song():
+    mixer.music.stop()
 
 
 def pause_song():
@@ -69,23 +73,38 @@ def rewind_song():
     statusbar["text"] = f"Rewinding {os.path.basename(filename)}"
 
 
-# def get_post():
-#     while mixer.music.get_busy():
-#         currentlable["text"] = mixer.music.get_pos() - 1
-
-
 # get song length
 def show_song_status():
-    #     data = mixer.Sound.get_length(filename)
+    # get the length of the song if mp3
     if filename.endswith(".mp3"):
         data = MP3(filename)
-        tal = data.info.length
+        totallength = data.info.length
     else:
-        tal = mixer.Sound.get_length(filename)
-    mins, secs = divmod(tal, 60)
+        totallength = mixer.Sound.get_length(filename)
+    mins, secs = divmod(totallength, 60)
     min1 = round(mins)
     sec = round(secs)
-    totallabel["text"] = f"total length {min1}:{sec}"
+    timeformat = "{:02d}:{:02d}".format(min1, sec)
+    totallabel["text"] = f"total length {timeformat}"
+    # thread to manage current time
+    t = threading.Thread(target=current_time, args=(totallength,))
+    t.start()
+
+
+# get current song time
+def current_time(t):
+    while t and mixer.music.get_busy():
+        global paused  # to stop time when paused and resume when unpause
+        if paused:
+            continue
+        else:
+            mins, secs = divmod(t, 60)
+            min1 = round(mins)
+            sec = round(secs)
+            timeformat = "{:02d}:{:02d}".format(min1, sec)
+            currentlable["text"] = f"current time {timeformat}"
+            time.sleep(1)
+            t -= 1
 
 
 def setvolume(val):
@@ -190,7 +209,7 @@ play_ = ttk.Button(middleframe, image=playphoto, command=play_song)
 play_.grid(row=0, column=0, padx=15, pady=15)
 pause = ttk.Button(middleframe, image=pausephoto, command=pause_song)
 pause.grid(row=0, column=1, padx=15, pady=15)
-stop = ttk.Button(middleframe, image=stopphoto)
+stop = ttk.Button(middleframe, image=stopphoto, command=stop_song)
 stop.grid(row=0, column=2, padx=15, pady=15)
 rewind = ttk.Button(middleframe, image=rewindphoto, command=rewind_song)
 rewind.grid(row=0, column=3, padx=15, pady=15)
