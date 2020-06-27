@@ -21,17 +21,19 @@ root.configure(background="brown")
 # initialize mixer
 mixer.init()
 
-paused = True  # for pausing and unpause song
+paused = False  # for pausing and unpause song
 
 # browse file to play
-def browse_file(filename):
+def browse_file():
     """opens a music file
     """
-    filesong = filedialog.askopenfile()
+    global filename
+    filename = filedialog.askopenfilename()
+    add_song(filename)  # add browsed files to playlist
 
 
 # play song
-filename = r"icons/137.FRANCO - Namiswi Misapi.mp3"
+# filename = r"icons/137.FRANCO - Namiswi Misapi.mp3"
 
 
 def play_song():
@@ -41,14 +43,13 @@ def play_song():
     global filename
     global paused
     if paused:
-        mixer.music.load(filename)
-        mixer.music.play()
+        mixer.music.unpause()
         statusbar["text"] = f"playing {os.path.basename(filename)}"
         paused = False
     else:
-        mixer.music.unpause()
+        mixer.music.load(filename)
+        mixer.music.play()
         statusbar["text"] = f"playing {os.path.basename(filename)}"
-        paused = True
     show_song_status()
 
 
@@ -61,10 +62,9 @@ def pause_song():
     """pause song being played
     """
     global paused
-    if paused:
-        mixer.music.pause()
-        statusbar["text"] = f"Paused {os.path.basename(filename)}"
-        paused = False
+    paused = True
+    mixer.music.pause()
+    statusbar["text"] = f"Paused {os.path.basename(filename)}"
 
 
 # rewind song
@@ -144,8 +144,17 @@ def about():
     return messagebox.showinfo("About", "AfroBit is a music app built using tkinter")
 
 
-# menu
+# add song to playlist
+def add_song(f):
+    """takes a file to be added to playlist
 
+    Args:
+        f ([str]): [sound object]
+    """
+    playlist.insert(1, os.path.basename(f))
+
+
+# menu
 submenu = Menu(root)
 root.config(menu=submenu)
 filemenu = Menu(submenu, tearoff=0, bg="brown")
@@ -172,9 +181,10 @@ left = ttk.Frame(root)
 listlable = ttk.Label(left, text="play list", font="monospace 10 normal")
 listlable.pack(side="top", anchor="w", padx=50, pady=5)
 playlist = Listbox(left)
+playlist.insert(0, "song1")
 playlist.pack(padx=0)
 # add and delete button
-addlable = ttk.Button(left, text="+add music")
+addlable = ttk.Button(left, text="+add music", command=browse_file)
 addlable.pack(side="left", padx=10, pady=10)
 dellable = ttk.Button(left, text="-del music")
 dellable.pack(side="left", padx=10, pady=10)
