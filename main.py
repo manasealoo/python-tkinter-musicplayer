@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+import pygame
 from pygame import mixer
 from tkinter import messagebox
 from tkinter import filedialog
@@ -22,6 +23,7 @@ root.configure(background="brown")
 mixer.init()
 
 paused = False  # for pausing and unpause song
+filename = None
 
 # browse file to play
 def browse_file():
@@ -47,10 +49,13 @@ def play_song():
         statusbar["text"] = f"playing {os.path.basename(filename)}"
         paused = False
     else:
-        mixer.music.load(filename)
-        mixer.music.play()
-        statusbar["text"] = f"playing {os.path.basename(filename)}"
-    show_song_status()
+        try:
+            mixer.music.load(filename)
+            mixer.music.play()
+            statusbar["text"] = f"playing {os.path.basename(filename)}"
+            show_song_status()
+        except:
+            messagebox.showerror("Error", "No song to play")
 
 
 # stop song
@@ -62,15 +67,21 @@ def pause_song():
     """pause song being played
     """
     global paused
-    paused = True
-    mixer.music.pause()
-    statusbar["text"] = f"Paused {os.path.basename(filename)}"
+    try:
+        paused = True
+        mixer.music.pause()
+        statusbar["text"] = f"Paused {os.path.basename(filename)}"
+    except TypeError:
+        messagebox.showerror("Error", "no song to pause")
 
 
 # rewind song
 def rewind_song():
-    mixer.music.rewind()
-    statusbar["text"] = f"Rewinding {os.path.basename(filename)}"
+    try:
+        mixer.music.rewind()
+        statusbar["text"] = f"Rewinding {os.path.basename(filename)}"
+    except TypeError:
+        messagebox.showerror("Playback error", "No song to rewind")
 
 
 # get song length
@@ -181,7 +192,6 @@ left = ttk.Frame(root)
 listlable = ttk.Label(left, text="play list", font="monospace 10 normal")
 listlable.pack(side="top", anchor="w", padx=50, pady=5)
 playlist = Listbox(left)
-playlist.insert(0, "song1")
 playlist.pack(padx=0)
 # add and delete button
 addlable = ttk.Button(left, text="+add music", command=browse_file)
@@ -205,7 +215,7 @@ topframe.pack(padx=10, pady=15)
 
 right.pack(side="left", padx=30, pady=20)
 
-# middle frame ---todo
+# middle frame ---music controls
 middleframe = ttk.Frame(right)
 # control photos
 playphoto = PhotoImage(file="icons/play.png")
