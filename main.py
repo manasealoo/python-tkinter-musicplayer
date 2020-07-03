@@ -23,15 +23,19 @@ root.configure(background="brown")
 mixer.init()
 
 paused = False  # for pausing and unpause song
-filename = None
-
+filename_path = None
+play_list = []
+# contains song full path plus the song,path required to load the music in play function
+# playlist contains only the filename
 # browse file to play
+
+
 def browse_file():
     """opens a music file
     """
-    global filename
-    filename = filedialog.askopenfilename()
-    add_song(filename)  # add browsed files to playlist
+    global filename_path
+    filename_path = filedialog.askopenfilename()
+    add_song(filename_path)  # add browsed files to playlist
 
 
 # play song
@@ -42,18 +46,25 @@ def play_song():
     """
     play selected song and unpause song
     """
-    global filename
+    global filename_path
     global paused
     if paused:
         mixer.music.unpause()
-        statusbar["text"] = f"playing {os.path.basename(filename)}"
+        statusbar["text"] = f"playing {os.path.basename(filename_path)}"
         paused = False
     else:
         try:
-            mixer.music.load(filename)
+            stop_song()
+            time.sleep(1)
+            selected_song = playlist.curselection()  # plays selected song
+            selected_song = int(
+                selected_song[0]
+            )  # get position of selected song,typecast to get the int i.e its a tuple
+            play_it = play_list[selected_song]  # play selected song from playlist
+            mixer.music.load(play_it)
             mixer.music.play()
-            statusbar["text"] = f"playing {os.path.basename(filename)}"
-            show_song_status()
+            statusbar["text"] = f"playing {os.path.basename(play_it)}"
+            show_song_status(play_it)
         except:
             messagebox.showerror("Error", "No song to play")
 
@@ -70,7 +81,7 @@ def pause_song():
     try:
         paused = True
         mixer.music.pause()
-        statusbar["text"] = f"Paused {os.path.basename(filename)}"
+        statusbar["text"] = f"Paused {os.path.basename(filename_path)}"
     except TypeError:
         messagebox.showerror("Error", "no song to pause")
 
@@ -79,19 +90,19 @@ def pause_song():
 def rewind_song():
     try:
         mixer.music.rewind()
-        statusbar["text"] = f"Rewinding {os.path.basename(filename)}"
+        statusbar["text"] = f"Rewinding {os.path.basename(filename_path)}"
     except TypeError:
         messagebox.showerror("Playback error", "No song to rewind")
 
 
 # get song length
-def show_song_status():
+def show_song_status(song):
     # get the length of the song if mp3
-    if filename.endswith(".mp3"):
-        data = MP3(filename)
+    if filename_path.endswith(".mp3"):
+        data = MP3(song)
         totallength = data.info.length
     else:
-        totallength = mixer.Sound.get_length(filename)
+        totallength = mixer.Sound.get_length(song)
     mins, secs = divmod(totallength, 60)
     min1 = round(mins)
     sec = round(secs)
@@ -162,7 +173,17 @@ def add_song(f):
     Args:
         f ([str]): [sound object]
     """
-    playlist.insert(1, os.path.basename(f))
+    filename = os.path.basename(f)
+    index = 0
+    playlist.insert(index, filename)
+    play_list.insert(index, filename_path)
+
+
+def delete_song():
+    selected_song = playlist.curselection()  # plays selected song
+    selected_song = int(selected_song[0])
+    playlist.delete(selected_song)  # delete song from listbox
+    play_list.pop(selected_song)  # remove song from the playlist
 
 
 # menu
@@ -196,7 +217,7 @@ playlist.pack(padx=0)
 # add and delete button
 addlable = ttk.Button(left, text="+add music", command=browse_file)
 addlable.pack(side="left", padx=10, pady=10)
-dellable = ttk.Button(left, text="-del music")
+dellable = ttk.Button(left, text="-del music", command=delete_song)
 dellable.pack(side="left", padx=10, pady=10)
 left.pack(side="left", padx=10, pady=20)
 
@@ -252,4 +273,15 @@ scale.grid(row=0, column=1, padx=15, pady=15)
 scale.set(70)
 mixer.music.set_volume(0.7)
 bottom.pack(side="bottom")
+
+
+def on_close():
+    # close main window without throwing main loop thread error
+    # RuntimeError: main thread is not in main loop
+    stop_song()
+    root.destroy()
+
+
+# handles closing of the main window
+root.wm_protocol("WM_DELETE_WINDOW", on_close)
 root.mainloop()
