@@ -1,7 +1,6 @@
 import os
 import time
 import threading
-import pygame
 from pygame import mixer
 from tkinter import messagebox
 from tkinter import filedialog
@@ -24,7 +23,7 @@ mixer.init()
 
 paused = False  # for pausing and unpause song
 filename_path = None
-play_list = []
+play_list = list(set())
 # contains song full path plus the song,path required to load the music in play function
 # playlist contains only the filename
 # browse file to play
@@ -57,9 +56,8 @@ def play_song():
             stop_song()
             time.sleep(1)
             selected_song = playlist.curselection()  # plays selected song
-            selected_song = int(
-                selected_song[0]
-            )  # get position of selected song,typecast to get the int i.e its a tuple
+            selected_song = int(selected_song[0])
+            # get position of selected song,typecast to get the int i.e its a tuple
             play_it = play_list[selected_song]  # play selected song from playlist
             mixer.music.load(play_it)
             mixer.music.play()
@@ -209,17 +207,22 @@ statusbar = Label(
 statusbar.pack(side="bottom", fill="x")
 # 2 frames for the interfaces
 # left frame
-left = ttk.Frame(root)
+left = ttk.Frame(root, width=50)
 listlable = ttk.Label(left, text="play list", font="monospace 10 normal")
-listlable.pack(side="top", anchor="w", padx=50, pady=5)
-playlist = Listbox(left)
-playlist.pack(padx=0)
+listlable.grid(row=0, column=0, columnspan=2, sticky="w", padx=50, pady=5)
+# configure playlist scrollbar
+playlist = Listbox(left, width=40, height=9)
+scroll_bar = ttk.Scrollbar(left)
+playlist.configure(yscrollcommand=scroll_bar.set)
+scroll_bar.config(command=playlist.yview)
+scroll_bar.grid(row=1, column=3, rowspan=6)
+playlist.grid(row=1, column=0, columnspan=2, rowspan=6, padx=0, ipadx=5)
 # add and delete button
 addlable = ttk.Button(left, text="+add music", command=browse_file)
-addlable.pack(side="left", padx=10, pady=10)
+addlable.grid(row=7, column=0, padx=10, pady=10)
 dellable = ttk.Button(left, text="-del music", command=delete_song)
-dellable.pack(side="left", padx=10, pady=10)
-left.pack(side="left", padx=10, pady=20)
+dellable.grid(row=7, column=1, padx=10, pady=10)
+left.pack(side="left", padx=10, pady=20, ipadx=20)
 
 # right frame
 right = ttk.Frame(root)
