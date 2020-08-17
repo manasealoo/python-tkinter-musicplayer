@@ -5,11 +5,16 @@
         "aboutus",
         "addlable",
         "currentlable",
+        "ipadx",
         "listlable",
         "pady",
         "pygame",
         "ttkthemes",
-        "unmuted"
+        "unmuted",
+        "yscrollcommand",
+        "yview"
     ],
-    "python.pythonPath": "C:\\Users\\PEARL-05\\AppData\\Local\\Programs\\Python\\Python38\\python.exe"
+    "python.pythonPath": "C:\\Users\\PEARL-05\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
+    "python.linting.banditEnabled": true,
+    "python.linting.enabled": true
 }
