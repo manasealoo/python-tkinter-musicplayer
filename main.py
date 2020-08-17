@@ -23,7 +23,7 @@ mixer.init()
 
 paused = False  # for pausing and unpause song
 filename_path = None
-play_list = list(set())
+play_list = []
 # contains song full path plus the song,path required to load the music in play function
 # playlist contains only the filename
 # browse file to play
@@ -173,8 +173,10 @@ def add_song(f):
     """
     filename = os.path.basename(f)
     index = 0
-    playlist.insert(index, filename)
-    play_list.insert(index, filename_path)
+    # only add a true file to playlist not an empty file or none type
+    if filename:
+        playlist.insert(index, filename)
+        play_list.insert(index, filename_path)
 
 
 def delete_song():
@@ -212,11 +214,10 @@ listlable = ttk.Label(left, text="play list", font="monospace 10 normal")
 listlable.grid(row=0, column=0, columnspan=2, sticky="w", padx=50, pady=5)
 # configure playlist scrollbar
 playlist = Listbox(left, width=40, height=9)
-scroll_bar = ttk.Scrollbar(left)
+scroll_bar = ttk.Scrollbar(left, command=playlist.yview, orient=VERTICAL)
 playlist.configure(yscrollcommand=scroll_bar.set)
-scroll_bar.config(command=playlist.yview)
-scroll_bar.grid(row=1, column=3, rowspan=6)
-playlist.grid(row=1, column=0, columnspan=2, rowspan=6, padx=0, ipadx=5)
+scroll_bar.grid(row=1, column=3, sticky="ns")
+playlist.grid(row=1, column=0, columnspan=2, padx=0, ipadx=5)
 # add and delete button
 addlable = ttk.Button(left, text="+add music", command=browse_file)
 addlable.grid(row=7, column=0, padx=10, pady=10)
